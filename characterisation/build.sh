@@ -9,7 +9,6 @@ psql -h ${KAHAWAI_DBHOST} -d ${KAHAWAI_DBNAME} -U ${KAHAWAI_DBUSER} -f ../ghoti/
 psql -h ${KAHAWAI_DBHOST} -d ${KAHAWAI_DBNAME} -U ${KAHAWAI_DBUSER} -f setup.sql --set ON_ERROR_STOP=1
 psql -h ${KAHAWAI_DBHOST} -d ${KAHAWAI_DBNAME} -U ${KAHAWAI_DBUSER} -f ../ghoti/characterisation/sql/characterisation.sql --set ON_ERROR_STOP=1
 
-
 # Uncomment the next four lines, and set project code, to produce data archive for MPI
 # psql -h ${KAHAWAI_DBHOST} -d ${KAHAWAI_DBNAME} -U ${KAHAWAI_DBUSER} -f ../ghoti/CPUE/get_data/functions.sql --set ON_ERROR_STOP=1
 # #psql -h ${KAHAWAI_DBHOST} -d ${KAHAWAI_DBNAME} -U ${KAHAWAI_DBUSER} -f ../ghoti/CPUE/get_data/cpue.sql --set ON_ERROR_STOP=1
