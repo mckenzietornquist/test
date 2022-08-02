@@ -1,0 +1,5 @@
+docker: ubuntu/gorbachev-base-bleedingedge
+build: withdb bash build.sh
+cpus: 2
+memory: 32
+allows: ["XXX-FAR"] 

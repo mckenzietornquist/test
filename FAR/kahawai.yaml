@@ -1,0 +1,6 @@
+docker: ubuntu/gorbachev-base-bleedingedge
+build: withdb bash build.sh
+cpus: 1
+memory: 16
+requires: [ "XXX-char-data"]
+

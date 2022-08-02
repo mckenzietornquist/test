@@ -1,0 +1,219 @@
+\documentclass{mpi-far}
+\usepackage{siunitx}
+\sisetup{detect-all}
+\usepackage{tikz}
+\usepackage{colortbl}
+\arrayrulecolor{white}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage[section]{placeins}
+\usepackage{pdflscape}
+\usepackage{pdfpages}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{gensymb}
+\usepackage{fancyvrb}
+\usepackage{chngcntr}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{bbold}
+\usepackage{subcaption}
+\usepackage{xurl}
+\usepackage{soul}
+
+<<init, echo=FALSE, warning=FALSE, message=FALSE>>=
+
+source("../ghoti/characterisation/R/load_functions.R")
+
+report_options$grid_xlim <- c(170,179)
+report_options$grid_ylim <- c(-39,-34)
+report_options$apply_33_rule <- TRUE
+report_options$report_mode <- "draft"
+report_options$hasCPUE <- TRUE
+report_options$hasObs <- FALSE
+
+source("../ghoti/templates/char_cpue/knitr_options.R")
+load("/input/XXX/characterisation.rda") #load char data using report name in kahawai 
+source("../ghoti/templates/char_cpue/aggregated_levels.R")
+
+if (report_options$hasObs) {
+  
+  source("../ghoti/observer/R/functions.R")
+  load("/input/XXX/composition.rda") #load obs data using report name in kahawai
+}
+
+
+if (report_options$hasCPUE) {
+  
+  load("/input/XXX/cpue.rda") #load obs data using report name in kahawai
+  load("/input/XXX/cpue-series.rda") #load obs data using report name in kahawai
+  
+  library(RPostgreSQL)
+  s   <- Sys.getenv()
+  drv <- dbDriver("PostgreSQL")
+  con <- dbConnect(drv, host = s[['KAHAWAI_DBHOST']], dbname = s[['KAHAWAI_DBNAME']],
+          password = s[['KAHAWAI_DBPASS']], user = s[['KAHAWAI_DBUSER']])
+
+  series_spec <- dbGetQuery(con, "SELECT * FROM series_spec")
+}
+
+@
+
+\title{XXX}{XXX}
+\subtitle{XXX}
+
+\author{XXX}
+
+\date{XXXX}
+\reportmonth{XXXX}
+\reportseries{Draft New Zealand Fisheries Assessment Report}
+\reportno{}
+
+\isbn{xxx-x-xxxxxxx-x-x}
+
+\addbibresource{../ghoti/templates/char_cpue/methods.bib}
+\addbibresource{../ghoti/templates/char_cpue/bayes.bib}
+
+\begin{document}
+
+
+%\input{mpiDraftCover}
+\maketitle
+
+\clearpage
+\tableofcontents
+
+\summary
+\citeself
+
+% Executive summary text specific to this report
+<<executive-summary, child='sections/executive_summary_text.rnw'>>=
+@
+
+\clearpage
+\section{Introduction}
+
+% Succinct overview
+<<intro, child='sections/assessment_intro_text.rnw'>>=
+@
+
+% Standard introductory plots and tables
+<<intro-plots-tabs, child='../ghoti/templates/char_cpue/introduction.rnw'>>=
+@
+
+\clearpage
+\section{Fishery characterisation: Methods}
+
+% Standard characterisation methods text
+<<methods-char-generic, child='../ghoti/templates/char_cpue/methods_characterisation.rnw'>>=
+@
+
+% Standard CPUE data methods text
+<<methods-cpue-generic, child='../ghoti/templates/char_cpue/methods_cpue_data.rnw', eval=report_options$hasCPUE>>=
+@
+
+% CPUE models table
+<<model_table, child='../ghoti/CPUE-ML/tabs/model_table.rnw', eval=report_options$hasCPUE>>=
+@
+
+% CPUE assess table
+<<assess_table, child='sections/cpue_series_years_tab.rnw', eval=report_options$hasCPUE>>=
+@
+
+\clearpage
+\section{Fishery characterisation: Results}
+
+% Fishery characterisation text specific to this report
+<<characterisation-text, child='sections/characterisation_text.rnw'>>=
+@
+
+\clearpage
+\section{Fishery characterisation}
+% Fishery characterisation plots and tables
+<<characterisation-plots-tabs, child='../ghoti/templates/char_cpue/characterisation.rnw'>>=
+ @
+
+\clearpage
+\FloatBarrier
+
+\section{Catch-per-unit-effort}
+
+<<cpue_ML_setup_opts, eval=report_options$hasCPUE>>=
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+@
+
+<<CPUE_ML_setup, echo=FALSE, warning=FALSE, message=FALSE, results='asis', eval=report_options$hasCPUE>>=
+
+CPUE_names <- series_spec$series
+CPUE_names_short <- series_spec$id
+CPUE_types <- series_spec$resolution
+prints <- series_spec$print
+
+selected <- series_spec$selected_distribution
+final_indices <- str_to_title(series_spec$index_type)
+ref_period <- c(1989:2021, rep('None',nrow(series_spec)-1))
+
+source('../ghoti/CPUE-ML/get_data/get_CPUE.R')
+
+knit_src <- list()
+for(i in 1:length(src)) knit_src[[i]] <- knitr::knit(text = src[i],quiet = T)
+
+cat(paste(unlist(knit_src[prints=='text']), collapse = '\n'), '\n')
+
+names(cidx) <- CPUE_names
+
+@
+
+\clearpage
+\section{Discussion}
+% Discussion
+<<characterisation-text, child='sections/discussion_text.rnw'>>=
+@
+
+\section{Acknowledgements}
+
+\printbibliography
+
+\clearpage
+\appendices
+
+% Standard grooming summary
+<<grooming-appendix, child='../ghoti/templates/char_cpue/grooming.rnw'>>=
+@
+
+\clearpage
+
+% % Characterisation tables
+<<char_tab_appendix, child='../ghoti/templates/char_cpue/characterisation_tables.rnw'>>=
+@
+
+\section{Composition data}
+This appendix summarises available data on the composition of \Sexpr{report_spec$common_name} catches.
+
+% Obs data
+<<obs_data_appendix, child='../ghoti/templates/char_cpue/observer.rnw',eval=report_options$hasObs>>=
+@
+
+\section{Additional CPUE series}
+\label{app:additional_cpue}
+\counterwithin{figure}{section}
+\counterwithin{table}{section}
+<<CPUE_ML_setup_appendix, echo=FALSE, warning=FALSE, message=FALSE, results='asis', eval=report_options$hasCPUE>>=
+cat(paste(unlist(knit_src[prints=='appendix']), collapse = '\n'), '\n')
+@
+
+\clearpage
+% Glossary of codes
+<<glossary_appendix, child='../ghoti/templates/char_cpue/glossary.rnw'>>=
+@
+
+<<data_setup, echo=FALSE, warning=FALSE, message=FALSE,results='asis'>>=
+save.image(file='interim.RData')
+@
+
+\end{document}
