@@ -2,7 +2,6 @@
 
 set -euo  pipefail
 
-
 export PGPASSWORD=${KAHAWAI_DBPASS}
 
 psql -h ${KAHAWAI_DBHOST} -d ${KAHAWAI_DBNAME} -U ${KAHAWAI_DBUSER} -f ../ghoti/characterisation/sql/functions.sql --set ON_ERROR_STOP=1
